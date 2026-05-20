@@ -103,7 +103,7 @@ const COPY = {
     priceHeading: "Pricing Guide",
     priceBody: "Standard price per 1M tokens. Actual cost depends on input and output length.",
     skip: "Skip and view demo",
-    promptHeading: "What should we work on?",
+    promptHeading: "What should we work\u00a0on?",
     promptPlaceholder: "Ask Codex anything.",
     search: "Search",
     sidebarAria: "Conversation sidebar",
@@ -733,6 +733,7 @@ export default function Page() {
   const [sessionModel, setSessionModel] = useState(MODEL_OPTIONS[0].value);
   const [composerModelMenuOpen, setComposerModelMenuOpen] = useState(false);
   const [submittedPrompt, setSubmittedPrompt] = useState("");
+  const [showAnswerColumns, setShowAnswerColumns] = useState(false);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const timersRef = useRef([]);
   const runIdRef = useRef(0);
@@ -832,6 +833,7 @@ export default function Page() {
       timersRef.current = [];
       setCodexRunning(false);
       setJtcRunning(false);
+      setShowAnswerColumns(false);
       setErrorNote(copy.keyRequired);
       setShowKeyGate(true);
       return;
@@ -843,6 +845,7 @@ export default function Page() {
     timersRef.current = [];
 
     setSubmittedPrompt(cleanPrompt);
+    setShowAnswerColumns(false);
     setPrompt("");
     setCodexRunning(true);
     setJtcRunning(true);
@@ -856,6 +859,7 @@ export default function Page() {
     setJtcRingiIndex(-1);
     setShowPdfPreview(false);
 
+    addTimer(() => runIdRef.current === runId && setShowAnswerColumns(true), 1000);
     addTimer(() => runIdRef.current === runId && setCodexStepIndex(1), 1900);
     addTimer(() => runIdRef.current === runId && setCodexStepIndex(2), 3400);
 
@@ -1050,71 +1054,73 @@ export default function Page() {
               <p>{copy.choiceBody}</p>
             </div>
 
-            <div className="duel-grid">
-              <section className="lane ai-lane" aria-label={copy.codexAria}>
-                <header className="lane-header">
-                  <CodexPet busy={codexRunning} done={!codexRunning && todoHtml !== initialHtml} label={language === "en" ? "Codex" : "Codexくん"} />
-                  <div className={`lane-status ${codexRunning && codexStepIndex === 1 ? "is-thinking" : ""}`}>
-                    <TypewriterText text={codexHeaderText} muted={codexRunning && codexStepIndex === 1} />
-                  </div>
-                </header>
-
-                <div className={`preview-frame ${codexRunning ? "is-generating" : ""}`}>
-                  <div className="preview-toolbar">
-                    <span />
-                    <span />
-                    <span />
-                  </div>
-                  {codexRunning ? (
-                    <div className="app-generating" aria-live="polite">
-                      <div className="app-generating-label">{copy.generatingApp}</div>
-                      <div className="mock-app-line wide" />
-                      <div className="mock-app-input" />
-                      <div className="mock-app-items">
-                        <span />
-                        <span />
-                        <span />
-                      </div>
+            {showAnswerColumns ? (
+              <div className="duel-grid">
+                <section className="lane ai-lane" aria-label={copy.codexAria}>
+                  <header className="lane-header">
+                    <CodexPet busy={codexRunning} done={!codexRunning && todoHtml !== initialHtml} label={language === "en" ? "Codex" : "Codexくん"} />
+                    <div className={`lane-status ${codexRunning && codexStepIndex === 1 ? "is-thinking" : ""}`}>
+                      <TypewriterText text={codexHeaderText} muted={codexRunning && codexStepIndex === 1} />
                     </div>
-                  ) : null}
-                  <iframe title={copy.generatedTitle} sandbox="allow-scripts" srcDoc={todoHtml} />
-                </div>
-              </section>
+                  </header>
 
-              <section className="lane jtc-lane" aria-label={copy.jtcAria}>
-                <header className="lane-header">
-                  <SalarymanPet slug={characters[0]} visible tierIndex={0} />
-                  <div className={`lane-status ${codexRunning && codexStepIndex === 1 ? "is-thinking" : ""}`}>
-                    <TypewriterText text={jtcHeaderText} muted={(codexRunning && codexStepIndex === 1) || jtcRingiIndex >= 0} />
-                  </div>
-                </header>
-
-                <div className="jtc-board">
-                  <div className="pyramid">
-                    {visibleRows.map((tier, tierIndex) => (
-                      <div className="pyramid-row" key={tier.label} data-tier={tierIndex}>
-                        <div className="pet-line">
-                          {tier.nodes.map((node) => (
-                            <SalarymanPet
-                              key={characters[node]}
-                              slug={characters[node]}
-                              visible={node < revealed}
-                              tierIndex={tierIndex}
-                              bubbleText={initialJtcAcknowledgement && node === 0 ? copy.initialAck : activeRingiStep?.node === node ? activeRingiStep.text : ""}
-                              bubbleDirection={initialJtcAcknowledgement && node === 0 ? "down" : activeRingiStep?.node === node ? activeRingiStep.direction : "down"}
-                            />
-                          ))}
+                  <div className={`preview-frame ${codexRunning ? "is-generating" : ""}`}>
+                    <div className="preview-toolbar">
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                    {codexRunning ? (
+                      <div className="app-generating" aria-live="polite">
+                        <div className="app-generating-label">{copy.generatingApp}</div>
+                        <div className="mock-app-line wide" />
+                        <div className="mock-app-input" />
+                        <div className="mock-app-items">
+                          <span />
+                          <span />
+                          <span />
                         </div>
                       </div>
-                    ))}
+                    ) : null}
+                    <iframe title={copy.generatedTitle} sandbox="allow-scripts" srcDoc={todoHtml} />
                   </div>
-                </div>
+                </section>
 
-                <div className={`estimate-slot ${showEstimateDraft || showEstimate ? "is-visible" : ""}`}>
-                  {showEstimate ? <PdfChip copy={copy} onOpen={() => setShowPdfPreview(true)} /> : showEstimateDraft ? <EstimateCard copy={copy} estimate={estimate} /> : null}
-                </div>
-              </section>
-            </div>
+                <section className="lane jtc-lane" aria-label={copy.jtcAria}>
+                  <header className="lane-header">
+                    <SalarymanPet slug={characters[0]} visible tierIndex={0} />
+                    <div className={`lane-status ${codexRunning && codexStepIndex === 1 ? "is-thinking" : ""}`}>
+                      <TypewriterText text={jtcHeaderText} muted={(codexRunning && codexStepIndex === 1) || jtcRingiIndex >= 0} />
+                    </div>
+                  </header>
+
+                  <div className="jtc-board">
+                    <div className="pyramid">
+                      {visibleRows.map((tier, tierIndex) => (
+                        <div className="pyramid-row" key={tier.label} data-tier={tierIndex}>
+                          <div className="pet-line">
+                            {tier.nodes.map((node) => (
+                              <SalarymanPet
+                                key={characters[node]}
+                                slug={characters[node]}
+                                visible={node < revealed}
+                                tierIndex={tierIndex}
+                                bubbleText={initialJtcAcknowledgement && node === 0 ? copy.initialAck : activeRingiStep?.node === node ? activeRingiStep.text : ""}
+                                bubbleDirection={initialJtcAcknowledgement && node === 0 ? "down" : activeRingiStep?.node === node ? activeRingiStep.direction : "down"}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className={`estimate-slot ${showEstimateDraft || showEstimate ? "is-visible" : ""}`}>
+                    {showEstimate ? <PdfChip copy={copy} onOpen={() => setShowPdfPreview(true)} /> : showEstimateDraft ? <EstimateCard copy={copy} estimate={estimate} /> : null}
+                  </div>
+                </section>
+              </div>
+            ) : null}
           </section>
         )}
       </main>

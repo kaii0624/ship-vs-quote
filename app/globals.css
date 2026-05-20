@@ -236,6 +236,7 @@ button {
   line-height: 1.12;
   letter-spacing: 0;
   text-align: center;
+  text-wrap: balance;
 }
 
 .has-answers .composer-actions {
