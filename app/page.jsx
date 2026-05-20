@@ -36,6 +36,7 @@ const COPY = {
     priceHeading: "料金目安",
     priceBody: "標準料金・1M tokensあたり。実際の料金は入力/出力の長さで変わります。",
     skip: "スキップして初期デモを見る",
+    promptHeading: "何に取り組みますか？",
     promptPlaceholder: "Codex に何でも聞いてください。",
     search: "検索",
     sidebarAria: "会話サイドバー",
@@ -102,6 +103,7 @@ const COPY = {
     priceHeading: "Pricing Guide",
     priceBody: "Standard price per 1M tokens. Actual cost depends on input and output length.",
     skip: "Skip and view demo",
+    promptHeading: "What should we work on?",
     promptPlaceholder: "Ask Codex anything.",
     search: "Search",
     sidebarAria: "Conversation sidebar",
@@ -920,7 +922,6 @@ export default function Page() {
               </div>
               {errorNote ? <p className="key-note">{errorNote}</p> : null}
               <fieldset className="language-picker" aria-label={copy.languageLegend}>
-                <legend>{copy.languageLegend}</legend>
                 <div>
                   <button className={language === "en" ? "is-selected" : ""} type="button" onClick={() => changeLanguage("en")}>
                     English
@@ -978,57 +979,60 @@ export default function Page() {
           </div>
         ) : null}
 
-        <form className="request-bar" onSubmit={runComparison}>
-          <textarea
-            value={prompt}
-            onChange={(event) => setPrompt(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
-                event.preventDefault();
-                event.currentTarget.form?.requestSubmit();
-              }
-            }}
-            placeholder={copy.promptPlaceholder}
-            rows={1}
-          />
-          <div className="composer-actions">
-            <div className="key-model-select composer-model-select">
-              <button
-                aria-expanded={composerModelMenuOpen}
-                className="key-model-button composer-model-button"
-                disabled={busy}
-                onClick={() => {
-                  setComposerModelMenuOpen((value) => !value);
-                }}
-                type="button"
-              >
-                <span>{selectedModelOption.label}</span>
-                <em>{selectedModelOption.note[language]}</em>
-                <i>⌄</i>
+        <div className="prompt-area">
+          {!submittedPrompt && !showKeyGate ? <h2 className="prompt-heading">{copy.promptHeading}</h2> : null}
+          <form className="request-bar" onSubmit={runComparison}>
+            <textarea
+              value={prompt}
+              onChange={(event) => setPrompt(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+                  event.preventDefault();
+                  event.currentTarget.form?.requestSubmit();
+                }
+              }}
+              placeholder={copy.promptPlaceholder}
+              rows={1}
+            />
+            <div className="composer-actions">
+              <div className="key-model-select composer-model-select">
+                <button
+                  aria-expanded={composerModelMenuOpen}
+                  className="key-model-button composer-model-button"
+                  disabled={busy}
+                  onClick={() => {
+                    setComposerModelMenuOpen((value) => !value);
+                  }}
+                  type="button"
+                >
+                  <span>{selectedModelOption.label}</span>
+                  <em>{selectedModelOption.note[language]}</em>
+                  <i>⌄</i>
+                </button>
+                {composerModelMenuOpen ? (
+                  <div className="key-model-popover composer-model-popover" role="listbox" aria-label={copy.modelLegend}>
+                    {MODEL_OPTIONS.map((option) => (
+                      <button
+                        aria-selected={selectedModel === option.value}
+                        className={selectedModel === option.value ? "is-selected" : ""}
+                        key={option.value}
+                        onClick={() => chooseModel(option.value)}
+                        role="option"
+                        type="button"
+                      >
+                        <span>{option.label}</span>
+                        <em>{option.note[language]}</em>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+              <button className="send-button" type="submit" disabled={busy} aria-label={copy.send}>
+                ↑
               </button>
-              {composerModelMenuOpen ? (
-                <div className="key-model-popover composer-model-popover" role="listbox" aria-label={copy.modelLegend}>
-                  {MODEL_OPTIONS.map((option) => (
-                    <button
-                      aria-selected={selectedModel === option.value}
-                      className={selectedModel === option.value ? "is-selected" : ""}
-                      key={option.value}
-                      onClick={() => chooseModel(option.value)}
-                      role="option"
-                      type="button"
-                    >
-                      <span>{option.label}</span>
-                      <em>{option.note[language]}</em>
-                    </button>
-                  ))}
-                </div>
-              ) : null}
             </div>
-            <button className="send-button" type="submit" disabled={busy} aria-label={copy.send}>
-              ↑
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
 
         {!submittedPrompt ? (
           <div className="start-characters" aria-hidden="true">
