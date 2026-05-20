@@ -1170,13 +1170,17 @@ button {
 }
 
 .ringi-bubble.is-up {
-  border-color: #d9ccff;
-  color: #5f2ecc;
   animation-name: bubbleUp;
 }
 
-.ringi-bubble.is-up::after {
-  border-color: #d9ccff;
+.ringi-bubble.is-edge-left {
+  left: min(82px, 14vw);
+  transform: translateX(0);
+}
+
+.ringi-bubble.is-edge-left::after {
+  left: 8px;
+  transform: translateX(0) rotate(45deg);
 }
 
 .salaryman-pet.tier-3 {

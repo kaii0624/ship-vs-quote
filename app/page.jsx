@@ -531,13 +531,14 @@ function jtcNarration(codexRunning, stepIndex, jtcRingiIndex, showEstimate, esti
   return language === "en" ? "Checking the impact area and ownership boundaries." : "影響範囲と責任分界点を確認中です。";
 }
 
-function SalarymanPet({ slug, visible, tierIndex, bubbleText, bubbleDirection }) {
+function SalarymanPet({ slug, visible, tierIndex, bubbleText, bubbleDirection, bubblePlacement }) {
   const state = visible ? (tierIndex === 3 ? "review" : tierIndex === 0 ? "jump" : "wait") : "idle";
   const [row, column] = useFrame(state);
+  const bubbleClassName = ["ringi-bubble", `is-${bubbleDirection}`, bubblePlacement ? `is-${bubblePlacement}` : ""].filter(Boolean).join(" ");
 
   return (
     <div className={`salaryman-pet tier-${tierIndex} ${visible ? "is-visible" : ""}`}>
-      {bubbleText ? <div className={`ringi-bubble is-${bubbleDirection}`}>{bubbleText}</div> : null}
+      {bubbleText ? <div className={bubbleClassName}>{bubbleText}</div> : null}
       <div
         className="salaryman-sprite"
         style={{
@@ -1107,6 +1108,7 @@ export default function Page() {
                                 tierIndex={tierIndex}
                                 bubbleText={initialJtcAcknowledgement && node === 0 ? copy.initialAck : activeRingiStep?.node === node ? activeRingiStep.text : ""}
                                 bubbleDirection={initialJtcAcknowledgement && node === 0 ? "down" : activeRingiStep?.node === node ? activeRingiStep.direction : "down"}
+                                bubblePlacement={tierIndex === 3 && node === tier.nodes[0] ? "edge-left" : ""}
                               />
                             ))}
                           </div>
