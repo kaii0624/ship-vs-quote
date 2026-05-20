@@ -833,6 +833,8 @@ button {
 }
 
 .key-skip {
+  width: fit-content;
+  max-width: min(84vw, 300px);
   min-height: 46px;
   padding: 0 22px;
   border: 1px solid #111113;
@@ -841,6 +843,7 @@ button {
   color: #fff;
   font-size: 15px;
   font-weight: 760;
+  white-space: nowrap;
   box-shadow: 0 16px 34px rgba(0, 0, 0, 0.16);
 }
 
@@ -1800,8 +1803,9 @@ button {
   }
 
   .key-skip {
-    width: min(100%, 420px);
+    max-width: min(72vw, 280px);
     min-height: 44px;
+    padding: 0 18px;
     font-size: 14px;
   }
 
