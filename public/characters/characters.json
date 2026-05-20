@@ -1,0 +1,122 @@
+[
+  {
+    "slug": "prime_boss",
+    "tier": 0,
+    "persona": "50代後半、薄毛、四角メガネ、貫禄ある元請役員",
+    "age": 58,
+    "outfit": "dark executive suit",
+    "spritesheet": "assets/characters/prime_boss.webp"
+  },
+  {
+    "slug": "primary_manager_a",
+    "tier": 1,
+    "persona": "40代前半、細面、横分け、紺スーツの一次請PM",
+    "age": 42,
+    "outfit": "navy suit",
+    "spritesheet": "assets/characters/primary_manager_a.webp"
+  },
+  {
+    "slug": "primary_manager_b",
+    "tier": 1,
+    "persona": "40代後半、丸顔、太眉、茶スーツの一次請営業責任者",
+    "age": 47,
+    "outfit": "brown suit",
+    "spritesheet": "assets/characters/primary_manager_b.webp"
+  },
+  {
+    "slug": "secondary_lead_a",
+    "tier": 2,
+    "persona": "30代前半、すっきり顔、青灰スーツの二次請分析担当",
+    "age": 32,
+    "outfit": "blue gray suit",
+    "spritesheet": "assets/characters/secondary_lead_a.webp"
+  },
+  {
+    "slug": "secondary_lead_b",
+    "tier": 2,
+    "persona": "30代半ば、眠そうな眼鏡、灰スーツの二次請進捗担当",
+    "age": 35,
+    "outfit": "gray suit",
+    "spritesheet": "assets/characters/secondary_lead_b.webp"
+  },
+  {
+    "slug": "secondary_lead_c",
+    "tier": 2,
+    "persona": "30代後半、口髭と角眼鏡、オリーブスーツの二次請要件担当",
+    "age": 38,
+    "outfit": "olive suit",
+    "spritesheet": "assets/characters/secondary_lead_c.webp"
+  },
+  {
+    "slug": "secondary_lead_d",
+    "tier": 2,
+    "persona": "30代後半、短髪、黒スーツの二次請リード",
+    "age": 37,
+    "outfit": "black suit",
+    "spritesheet": "assets/characters/secondary_lead_d.webp"
+  },
+  {
+    "slug": "programmer_api",
+    "tier": 3,
+    "persona": "20代後半、黒パーカー、四角メガネのAPI担当",
+    "age": 29,
+    "outfit": "black hoodie",
+    "spritesheet": "assets/characters/programmer_api.webp"
+  },
+  {
+    "slug": "programmer_frontend",
+    "tier": 3,
+    "persona": "20代後半、緑パーカー、柔らかい顔の画面担当",
+    "age": 28,
+    "outfit": "green hoodie",
+    "spritesheet": "assets/characters/programmer_frontend.webp"
+  },
+  {
+    "slug": "programmer_css",
+    "tier": 3,
+    "persona": "20代半ば、紫パーカー、丸メガネのCSS担当",
+    "age": 26,
+    "outfit": "purple hoodie",
+    "spritesheet": "assets/characters/programmer_css.webp"
+  },
+  {
+    "slug": "programmer_qa",
+    "tier": 3,
+    "persona": "30代前半、ベージュカーディガン、慎重そうなQA担当",
+    "age": 33,
+    "outfit": "beige cardigan",
+    "spritesheet": "assets/characters/programmer_qa.webp"
+  },
+  {
+    "slug": "programmer_logs",
+    "tier": 3,
+    "persona": "30代半ば、青い作業着、無精髭のログ担当",
+    "age": 36,
+    "outfit": "blue work jacket",
+    "spritesheet": "assets/characters/programmer_logs.webp"
+  },
+  {
+    "slug": "programmer_excel",
+    "tier": 3,
+    "persona": "30代前半、灰スウェット、四角メガネのExcel担当",
+    "age": 32,
+    "outfit": "gray sweatshirt",
+    "spritesheet": "assets/characters/programmer_excel.webp"
+  },
+  {
+    "slug": "programmer_night",
+    "tier": 3,
+    "persona": "20代後半、紺パーカー、目の下に疲れがある深夜担当",
+    "age": 29,
+    "outfit": "navy hoodie",
+    "spritesheet": "assets/characters/programmer_night.webp"
+  },
+  {
+    "slug": "programmer_waiting",
+    "tier": 3,
+    "persona": "20代後半、赤パーカー、困り顔の仕様待ち担当",
+    "age": 27,
+    "outfit": "red hoodie",
+    "spritesheet": "assets/characters/programmer_waiting.webp"
+  }
+]
