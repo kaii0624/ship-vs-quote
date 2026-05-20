@@ -8,7 +8,8 @@ const DEFAULT_PROMPTS = {
   ja: "簡単なTODOアプリを作成してください。",
   en: "Build a simple TODO app.",
 };
-const DEFAULT_PROMPT = DEFAULT_PROMPTS.ja;
+const DEFAULT_LANGUAGE = "en";
+const DEFAULT_PROMPT = DEFAULT_PROMPTS[DEFAULT_LANGUAGE];
 const TOKYO_TIME_ZONE = "Asia/Tokyo";
 const WEEKDAYS = {
   ja: ["日", "月", "火", "水", "木", "金", "土"],
@@ -712,7 +713,7 @@ function EstimateCard({ estimate, copy }) {
 
 export default function Page() {
   const [prompt, setPrompt] = useState(DEFAULT_PROMPT);
-  const [language, setLanguage] = useState("ja");
+  const [language, setLanguage] = useState(DEFAULT_LANGUAGE);
   const [codexRunning, setCodexRunning] = useState(false);
   const [jtcRunning, setJtcRunning] = useState(false);
   const [revealed, setRevealed] = useState(1);
@@ -728,7 +729,6 @@ export default function Page() {
   const [sessionApiKey, setSessionApiKey] = useState("");
   const [selectedModel, setSelectedModel] = useState(MODEL_OPTIONS[0].value);
   const [sessionModel, setSessionModel] = useState(MODEL_OPTIONS[0].value);
-  const [modelMenuOpen, setModelMenuOpen] = useState(false);
   const [composerModelMenuOpen, setComposerModelMenuOpen] = useState(false);
   const [submittedPrompt, setSubmittedPrompt] = useState("");
   const [showPdfPreview, setShowPdfPreview] = useState(false);
@@ -816,7 +816,6 @@ export default function Page() {
   function chooseModel(nextModel) {
     setSelectedModel(nextModel);
     setSessionModel(nextModel);
-    setModelMenuOpen(false);
     setComposerModelMenuOpen(false);
   }
 
@@ -842,6 +841,7 @@ export default function Page() {
     timersRef.current = [];
 
     setSubmittedPrompt(cleanPrompt);
+    setPrompt("");
     setCodexRunning(true);
     setJtcRunning(true);
     setRevealed(1);
@@ -898,7 +898,6 @@ export default function Page() {
     event.preventDefault();
     setSessionApiKey(apiKeyInput.trim());
     setSessionModel(selectedModel);
-    setModelMenuOpen(false);
     setComposerModelMenuOpen(false);
     setErrorNote("");
     setShowKeyGate(false);
@@ -923,11 +922,11 @@ export default function Page() {
               <fieldset className="language-picker" aria-label={copy.languageLegend}>
                 <legend>{copy.languageLegend}</legend>
                 <div>
-                  <button className={language === "ja" ? "is-selected" : ""} type="button" onClick={() => changeLanguage("ja")}>
-                    日本語
-                  </button>
                   <button className={language === "en" ? "is-selected" : ""} type="button" onClick={() => changeLanguage("en")}>
                     English
+                  </button>
+                  <button className={language === "ja" ? "is-selected" : ""} type="button" onClick={() => changeLanguage("ja")}>
+                    日本語
                   </button>
                 </div>
               </fieldset>
@@ -952,38 +951,6 @@ export default function Page() {
                   autoFocus
                 />
                 <div className="key-input-actions">
-                  <div className="key-model-select">
-                    <button
-                      aria-expanded={modelMenuOpen}
-                      className="key-model-button"
-                      onClick={() => {
-                        setComposerModelMenuOpen(false);
-                        setModelMenuOpen((value) => !value);
-                      }}
-                      type="button"
-                    >
-                      <span>{selectedModelOption.label}</span>
-                      <em>{selectedModelOption.note[language]}</em>
-                      <i>⌄</i>
-                    </button>
-                    {modelMenuOpen ? (
-                      <div className="key-model-popover" role="listbox" aria-label={copy.modelLegend}>
-                        {MODEL_OPTIONS.map((option) => (
-                          <button
-                            aria-selected={selectedModel === option.value}
-                            className={selectedModel === option.value ? "is-selected" : ""}
-                            key={option.value}
-                            onClick={() => chooseModel(option.value)}
-                            role="option"
-                            type="button"
-                          >
-                            <span>{option.label}</span>
-                            <em>{option.note[language]}</em>
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
                   <button className="key-submit" type="submit" disabled={!apiKeyInput.trim()} aria-label={copy.submitKey}>
                     ↑
                   </button>
@@ -1031,7 +998,6 @@ export default function Page() {
                 className="key-model-button composer-model-button"
                 disabled={busy}
                 onClick={() => {
-                  setModelMenuOpen(false);
                   setComposerModelMenuOpen((value) => !value);
                 }}
                 type="button"

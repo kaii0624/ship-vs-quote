@@ -597,12 +597,12 @@ button {
 .key-input-shell {
   position: relative;
   width: min(100%, 920px);
-  min-height: 116px;
+  min-height: 58px;
   display: grid;
-  grid-template-rows: minmax(38px, 1fr) auto;
-  align-items: stretch;
-  gap: 12px;
-  padding: 18px 18px 14px 22px;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px 9px 22px;
   border: 1px solid #dddddf;
   border-radius: 28px;
   background: #fff;
@@ -635,7 +635,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 0;
   min-height: 40px;
 }
 
@@ -1786,9 +1786,9 @@ button {
   }
 
   .key-input-shell {
-    min-height: 108px;
-    padding: 14px 14px 12px 16px;
-    border-radius: 23px;
+    min-height: 56px;
+    padding: 8px 9px 8px 16px;
+    border-radius: 22px;
   }
 
   .key-input-shell input {
@@ -1798,7 +1798,7 @@ button {
 
   .key-input-actions {
     justify-content: flex-end;
-    gap: 7px;
+    gap: 0;
   }
 
   .key-model-button {
@@ -2122,7 +2122,7 @@ button {
   }
 
   .key-input-shell {
-    min-height: 104px;
+    min-height: 56px;
   }
 
   .key-disclaimer {
