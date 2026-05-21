@@ -430,9 +430,10 @@ function createUiMockHtml(uiMock, prompt) {
 <title>${escapeHtml(ui.appName)} UI Mock</title>
 <style>
   *{box-sizing:border-box}
-  body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#fff;color:#202124}
+  html,body{margin:0;width:100%;min-height:100%;overflow:auto}
+  body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#fff;color:#202124}
   button,input{font:inherit}
-  .app{height:100vh;max-height:520px;padding:14px;display:grid;grid-template-rows:auto minmax(0,1fr);gap:10px;background:#fff;overflow:hidden}
+  .app{min-height:100vh;padding:14px;display:grid;grid-template-rows:auto minmax(0,1fr);gap:10px;background:#fff;overflow:visible}
   .app.has-nav{grid-template-rows:auto auto minmax(0,1fr)}
   .top{display:flex;justify-content:space-between;gap:14px;align-items:start;min-height:0}
   h1{margin:0 0 4px;font-size:22px;font-weight:740;letter-spacing:0;line-height:1.08}
@@ -444,7 +445,7 @@ function createUiMockHtml(uiMock, prompt) {
   nav{display:flex;gap:5px;padding:3px;border:1px solid #e5e5e8;border-radius:11px;background:#f7f7f8;overflow:hidden}
   nav button{height:24px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:#686870;font-size:11px;font-weight:650}
   nav .is-active{background:#fff;color:#202124;box-shadow:0 1px 4px rgba(0,0,0,.08)}
-  .canvas{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(2,minmax(0,1fr));gap:9px;min-height:0;overflow:hidden}
+  .canvas{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(2,minmax(160px,auto));gap:9px;min-height:0;overflow:visible}
   .panel{min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);border:1px solid #e4e4e7;border-radius:12px;background:#fff;overflow:hidden}
   .panel>header{display:flex;align-items:start;justify-content:space-between;gap:8px;padding:9px 10px 7px;border-bottom:1px solid #eeeeef}
   .panel h2{margin:0;font-size:12px;font-weight:760;line-height:1.15}
@@ -452,7 +453,7 @@ function createUiMockHtml(uiMock, prompt) {
   .panel-actions{display:flex;gap:5px;flex:0 0 auto}
   .panel-actions button{height:24px;padding:0 8px;border:1px solid #dfdfe4;border-radius:8px;background:#fff;color:#33343a;font-size:10px;font-weight:700}
   .panel-actions .primary{border-color:#202124;background:#202124;color:#fff}
-  .panel-body{min-height:0;padding:9px 10px;overflow:hidden}
+  .panel-body{min-height:0;padding:9px 10px;overflow:auto}
   .metrics{height:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
   .metrics div{min-width:0;padding:9px;border:1px solid #ededf0;border-radius:10px;background:#fbfbfc}
   .metrics span,.field span{display:block;color:#85858c;font-size:10px;font-weight:700}
@@ -603,9 +604,9 @@ function createStatusHtml(title, body, language = "ja") {
 <title>${escapeHtml(title)}</title>
 <style>
   *{box-sizing:border-box}
-  html,body{margin:0;width:100%;height:100%;overflow:hidden}
+  html,body{margin:0;width:100%;min-height:100%;overflow:auto}
   body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#fff;color:#202124}
-  main{width:100%;height:100vh;max-height:520px;display:grid;place-items:center;padding:28px;overflow:hidden}
+  main{width:100%;min-height:100vh;display:grid;place-items:center;padding:28px;overflow:visible}
   .notice{width:min(420px,100%);border:1px solid #e3e3e7;border-radius:14px;padding:22px;background:#fff}
   h1{margin:0 0 8px;font-size:18px;line-height:1.25;letter-spacing:0}
   p{margin:0;color:#6f6f76;font-size:13px;line-height:1.6}
@@ -776,6 +777,8 @@ function fallbackPayload(prompt, reason = "local-fallback", language = "ja") {
 
 function sanitizeGeneratedHtml(html, prompt, language = "ja") {
   let safe = typeof html === "string" && html.trim() ? html : createFallbackAppHtml(prompt, "empty-openai-html", language);
+  const scrollOverride =
+    "<style>html,body{margin:0;width:100%;min-height:100%;height:auto;overflow:auto!important;}body{overscroll-behavior:contain;}main,.app{max-height:none!important;overflow:visible!important;}</style>";
   safe = safe
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
     .replace(/<link\b[^>]*>/gi, "")
@@ -788,8 +791,9 @@ function sanitizeGeneratedHtml(html, prompt, language = "ja") {
     "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:;\">";
   if (/<head[^>]*>/i.test(safe)) {
     safe = safe.replace(/<head[^>]*>/i, (match) => `${match}${csp}`);
+    safe = /<\/head>/i.test(safe) ? safe.replace(/<\/head>/i, `${scrollOverride}</head>`) : safe.replace(/<head[^>]*>/i, (match) => `${match}${scrollOverride}`);
   } else {
-    safe = `<!doctype html><html lang="${language === "en" ? "en" : "ja"}"><head>${csp}<meta charset="utf-8"></head><body>${safe}</body></html>`;
+    safe = `<!doctype html><html lang="${language === "en" ? "en" : "ja"}"><head>${csp}${scrollOverride}<meta charset="utf-8"></head><body>${safe}</body></html>`;
   }
   return safe;
 }
@@ -892,13 +896,13 @@ export async function POST(request) {
         ? `User request: ${prompt}\n\n` +
           `Today's date in Asia/Tokyo is ${todayLabel}. For jtcFinalLine, use these three estimate-review meeting options, all after today, in this exact order: "${candidates.join(", ")}". Do not include a year in the visible meeting options.\n` +
           "codexLine must be a natural Codex-style response in English, never using the phrase \"Thinking result\". Example: \"I built the UI mock for the timer app. The main controls and state are visible in one screen. What should we adjust next?\" Keep it under 140 characters when possible.\n" +
-          "appHtml must be a complete HTML string that creates the requested app screen from scratch. Put all CSS inside <style>. Do not use JavaScript, external CSS, external fonts, external images, iframe, object, embed, or link tags. Do not include Markdown fences or explanations; return HTML starting with <!doctype html>. It will be rendered inside a chat iframe, so html/body must use margin:0; width:100%; height:100%; overflow:hidden; and the main container must use width:100%; height:100vh; max-height:520px; box-sizing:border-box; overflow:hidden;. The whole UI must fit the frame without scrolling or overlap. Keep copy concise. Build only the natural UI for the requested app. Do not include generic admin tabs such as Overview/List/Create/Settings, project-status screens, recent activity, task owners, or placeholder people names.\n" +
+          "appHtml must be a complete HTML string that creates the requested app screen from scratch. Put all CSS inside <style>. Do not use JavaScript, external CSS, external fonts, external images, iframe, object, embed, or link tags. Do not include Markdown fences or explanations; return HTML starting with <!doctype html>. It will be rendered inside a chat iframe, so html/body must use margin:0; width:100%; min-height:100%; overflow:auto; and the main container must use width:100%; min-height:100vh; box-sizing:border-box; overflow:visible;. The UI should look good in the frame, and vertical scrolling is allowed when content is taller than the visible area. Keep copy concise. Build only the natural UI for the requested app. Do not include generic admin tabs such as Overview/List/Create/Settings, project-status screens, recent activity, task owners, or placeholder people names.\n" +
           "jtcFinalLine must be a traditional, slow English-speaking enterprise/vendor response. Include internal review, preliminary cost, timeline, a request to discuss the estimate using the provided three meeting options, and many caveats: discovery, design, integrations, operations, and final feasibility are subject to the next meeting. Never use \"Thinking result\". Keep it under 380 characters when possible.\n" +
           "jtcLines should be short speech-bubble lines for a top-down then bottom-up approval chain. estimate must be an English business estimate/proposal: title, timeline, cost range, total in USD, line items, and assumptions/exclusions adapted to the request. It should estimate discovery and implementation support, not actual delivery of production software."
         : `依頼プロンプト: ${prompt}\n\n` +
           `今日の日付（Asia/Tokyo）は${todayLabel}です。jtcFinalLineのお見積り説明候補日は、今日の翌日以降として、必ず「${candidates.join("、")}」の3候補をこの順番で使ってください。年は書かず、月日・曜日・時刻だけを書いてください。\n` +
           "codexLineは「Thinkingの結果」を絶対に使わず、Codexが即対応したような自然な日本語回答にしてください。例:「◯◯アプリのUIモックを作成しました。画面の雰囲気と必要な要素を確認できます。次は何を調整しましょう？」。120字以内。説明臭い長い補足は避けてください。\n" +
-          "appHtmlには、依頼されたアプリの画面そのものを一から作る完全なHTML文字列を返してください。CSSは<style>内にすべて書き、JavaScript、外部CSS、外部フォント、外部画像、iframe、object、embed、linkタグは使わないでください。Markdownの```や説明文は入れず、<!doctype html>から始まるHTMLだけにしてください。表示先はチャット欄内のiframeです。html/bodyは margin:0; width:100%; height:100%; overflow:hidden; にし、主要コンテナは width:100%; height:100vh; max-height:520px; box-sizing:border-box; overflow:hidden; にしてください。UI全体が横幅いっぱい、縦は表示枠内に収まり、スクロールしなくても一目で見えるようにしてください。文字は短く、ボタンやカードや入力欄が重ならないようにしてください。依頼内容に自然なUIだけを作り、管理用のメタ画面、概要/一覧/作成/設定のような汎用タブ、進行中/直近の動き/内容を確認中/佐藤/鈴木/田中のような作業管理サンプル文言や人名を入れないでください。\n" +
+          "appHtmlには、依頼されたアプリの画面そのものを一から作る完全なHTML文字列を返してください。CSSは<style>内にすべて書き、JavaScript、外部CSS、外部フォント、外部画像、iframe、object、embed、linkタグは使わないでください。Markdownの```や説明文は入れず、<!doctype html>から始まるHTMLだけにしてください。表示先はチャット欄内のiframeです。html/bodyは margin:0; width:100%; min-height:100%; overflow:auto; にし、主要コンテナは width:100%; min-height:100vh; box-sizing:border-box; overflow:visible; にしてください。UIは表示枠内で見やすく作り、縦に長い場合はiframe内でスクロールできる前提で構いません。文字は短く、ボタンやカードや入力欄が重ならないようにしてください。依頼内容に自然なUIだけを作り、管理用のメタ画面、概要/一覧/作成/設定のような汎用タブ、進行中/直近の動き/内容を確認中/佐藤/鈴木/田中のような作業管理サンプル文言や人名を入れないでください。\n" +
           "jtcFinalLineは日本企業/SIer風の伝統的で少し遅い回答にしてください。社内検討の結果、概算金額、構築期間、お見積り説明の打ち合わせ候補日3つ、要件定義・デザイン・連携・運用などは別途協議、全て対応可能かは次回打ち合わせ次第、というエクスキューズを含めてください。「Thinkingの結果」は絶対に使わないでください。220字以内。\n" +
           "jtcLinesは上から下へ指示し、最後は下から上へ承認が戻る稟議吹き出しとして使える短文を14個程度ください。estimateは日本企業っぽい御見積書として、件名・概算期間・概算費用・税込合計・明細・前提条件を依頼内容に合わせてください。実装そのものではなく、影響調査および実装支援の見積もりにしてください。";
     const response = await client.responses.create({

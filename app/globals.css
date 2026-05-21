@@ -962,6 +962,7 @@ button {
 }
 
 .preview-frame {
+  --preview-toolbar-height: 32px;
   position: relative;
   flex: 1;
   min-height: 0;
@@ -974,7 +975,9 @@ button {
 }
 
 .preview-toolbar {
-  height: 30px;
+  flex: 0 0 var(--preview-toolbar-height);
+  height: var(--preview-toolbar-height);
+  min-height: var(--preview-toolbar-height);
   display: flex;
   align-items: center;
   gap: 7px;
@@ -1002,6 +1005,7 @@ button {
   min-height: 0;
   border: 0;
   background: #fff;
+  overflow: auto;
   transition: opacity 180ms ease;
 }
 
@@ -1011,7 +1015,7 @@ button {
 
 .app-generating {
   position: absolute;
-  inset: 30px 0 0;
+  inset: var(--preview-toolbar-height) 0 0;
   z-index: 2;
   display: grid;
   grid-template-rows: auto auto auto 1fr;
@@ -2041,7 +2045,7 @@ button {
   .preview-frame iframe {
     flex: none;
     width: calc(100% / var(--preview-scale));
-    height: calc((100% - 30px) / var(--preview-scale));
+    height: calc((100% - var(--preview-toolbar-height)) / var(--preview-scale));
     transform: scale(var(--preview-scale));
     transform-origin: top left;
   }

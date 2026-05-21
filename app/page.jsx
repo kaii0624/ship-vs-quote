@@ -734,6 +734,7 @@ export default function Page() {
   const [composerModelMenuOpen, setComposerModelMenuOpen] = useState(false);
   const [submittedPrompt, setSubmittedPrompt] = useState("");
   const [showAnswerColumns, setShowAnswerColumns] = useState(false);
+  const [showCodexPreview, setShowCodexPreview] = useState(false);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const timersRef = useRef([]);
   const runIdRef = useRef(0);
@@ -834,6 +835,7 @@ export default function Page() {
       setCodexRunning(false);
       setJtcRunning(false);
       setShowAnswerColumns(false);
+      setShowCodexPreview(false);
       setErrorNote(copy.keyRequired);
       setShowKeyGate(true);
       return;
@@ -846,6 +848,7 @@ export default function Page() {
 
     setSubmittedPrompt(cleanPrompt);
     setShowAnswerColumns(false);
+    setShowCodexPreview(false);
     setPrompt("");
     setCodexRunning(true);
     setJtcRunning(true);
@@ -862,6 +865,7 @@ export default function Page() {
     addTimer(() => runIdRef.current === runId && setShowAnswerColumns(true), 1000);
     addTimer(() => runIdRef.current === runId && setCodexStepIndex(1), 1900);
     addTimer(() => runIdRef.current === runId && setCodexStepIndex(2), 3400);
+    addTimer(() => runIdRef.current === runId && setShowCodexPreview(true), 4200);
 
     try {
       const response = await fetch("/api/duel", {
@@ -1064,26 +1068,28 @@ export default function Page() {
                     </div>
                   </header>
 
-                  <div className={`preview-frame ${codexRunning ? "is-generating" : ""}`}>
-                    <div className="preview-toolbar">
-                      <span />
-                      <span />
-                      <span />
-                    </div>
-                    {codexRunning ? (
-                      <div className="app-generating" aria-live="polite">
-                        <div className="app-generating-label">{copy.generatingApp}</div>
-                        <div className="mock-app-line wide" />
-                        <div className="mock-app-input" />
-                        <div className="mock-app-items">
-                          <span />
-                          <span />
-                          <span />
-                        </div>
+                  {showCodexPreview ? (
+                    <div className={`preview-frame ${codexRunning ? "is-generating" : ""}`}>
+                      <div className="preview-toolbar">
+                        <span />
+                        <span />
+                        <span />
                       </div>
-                    ) : null}
-                    <iframe title={copy.generatedTitle} sandbox="allow-scripts" srcDoc={todoHtml} />
-                  </div>
+                      {codexRunning ? (
+                        <div className="app-generating" aria-live="polite">
+                          <div className="app-generating-label">{copy.generatingApp}</div>
+                          <div className="mock-app-line wide" />
+                          <div className="mock-app-input" />
+                          <div className="mock-app-items">
+                            <span />
+                            <span />
+                            <span />
+                          </div>
+                        </div>
+                      ) : null}
+                      <iframe title={copy.generatedTitle} sandbox="allow-scripts" scrolling="yes" srcDoc={todoHtml} />
+                    </div>
+                  ) : null}
                 </section>
 
                 <section className="lane jtc-lane" aria-label={copy.jtcAria}>
