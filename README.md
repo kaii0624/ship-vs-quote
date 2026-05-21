@@ -14,7 +14,7 @@ The default TODO prompt works as a no-key demo. For arbitrary prompts, users can
 
 - Next.js / React
 - OpenAI Responses API
-- GPT-5.5, GPT-5.4 mini, GPT-5.4 nano model selector
+- GPT-5.5 and GPT-5.4 mini model selector
 - Sandboxed iframe preview for generated HTML/CSS UI
 - PDF-style estimate preview without server-side PDF generation
 

@@ -19,7 +19,6 @@ const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"
 const MEETING_TIMES = ["10:00", "15:00", "11:00"];
 const MODEL_OPTIONS = [
   { value: "gpt-5.4-mini", label: "GPT-5.4 mini", note: { ja: "標準", en: "Standard" }, price: { ja: "入力 $0.75 / 出力 $4.50", en: "Input $0.75 / Output $4.50" } },
-  { value: "gpt-5.4-nano", label: "GPT-5.4 nano", note: { ja: "最安", en: "Lowest cost" }, price: { ja: "入力 $0.20 / 出力 $1.25", en: "Input $0.20 / Output $1.25" } },
   { value: "gpt-5.5", label: "GPT-5.5", note: { ja: "高精度", en: "Higher quality" }, price: { ja: "入力 $5.00 / 出力 $30.00", en: "Input $5.00 / Output $30.00" } },
 ];
 
