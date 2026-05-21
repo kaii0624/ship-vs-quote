@@ -40,6 +40,8 @@ const COPY = {
     search: "検索",
     sidebarAria: "会話サイドバー",
     sidebarToggle: "サイドバー",
+    openSidebar: "サイドバーを開く",
+    closeSidebar: "サイドバーを閉じる",
     newChat: "新規チャット",
     historyAria: "会話履歴",
     history: ["TODOアプリ作成"],
@@ -107,6 +109,8 @@ const COPY = {
     search: "Search",
     sidebarAria: "Conversation sidebar",
     sidebarToggle: "Sidebar",
+    openSidebar: "Open sidebar",
+    closeSidebar: "Close sidebar",
     newChat: "New chat",
     historyAria: "Conversation history",
     history: ["Build TODO App"],
@@ -565,11 +569,17 @@ function CodexPet({ busy, done, label = "Codexくん" }) {
   );
 }
 
-function Sidebar({ copy, apiConfigured }) {
+function Sidebar({ copy, apiConfigured, onToggle, sidebarOpen }) {
   return (
     <aside className="chat-sidebar" aria-label={copy.sidebarAria}>
       <div className="sidebar-top">
-        <button className="sidebar-icon-button" type="button" aria-label={copy.sidebarToggle}>
+        <button
+          className="sidebar-icon-button"
+          type="button"
+          aria-label={sidebarOpen ? copy.closeSidebar : copy.openSidebar}
+          aria-pressed={sidebarOpen}
+          onClick={onToggle}
+        >
           ≡
         </button>
         <button className="sidebar-icon-button" type="button" aria-label={copy.newChat}>
@@ -728,6 +738,7 @@ export default function Page() {
   const [showKeyGate, setShowKeyGate] = useState(true);
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [sessionApiKey, setSessionApiKey] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedModel, setSelectedModel] = useState(MODEL_OPTIONS[0].value);
   const [sessionModel, setSessionModel] = useState(MODEL_OPTIONS[0].value);
   const [composerModelMenuOpen, setComposerModelMenuOpen] = useState(false);
@@ -744,6 +755,7 @@ export default function Page() {
   const selectedModelOption = MODEL_OPTIONS.find((option) => option.value === selectedModel) || MODEL_OPTIONS[0];
   const busy = codexRunning || jtcRunning;
   const demoPromptLocked = !showKeyGate && !submittedPrompt && !sessionApiKey.trim();
+  const answerTitle = copy.history[0];
   const currentRingiSteps = language === "en" ? jtcRingiStepsEn : jtcRingiSteps;
   const ringiSteps = useMemo(
     () =>
@@ -914,8 +926,8 @@ export default function Page() {
   }
 
   return (
-    <div className="app-frame">
-      <Sidebar copy={copy} apiConfigured={Boolean(sessionApiKey.trim())} />
+    <div className={`app-frame ${sidebarOpen ? "" : "is-sidebar-closed"}`}>
+      <Sidebar copy={copy} apiConfigured={Boolean(sessionApiKey.trim())} onToggle={() => setSidebarOpen((value) => !value)} sidebarOpen={sidebarOpen} />
       <main className={`app-shell ${submittedPrompt ? "has-answers" : "is-start"}`}>
         {showKeyGate ? (
           <div className="key-gate" role="dialog" aria-modal="true" aria-label={copy.apiTitle}>
@@ -985,6 +997,24 @@ export default function Page() {
               </section>
             </form>
           </div>
+        ) : null}
+
+        {submittedPrompt ? (
+          <header className="answer-topbar">
+            <button
+              className="answer-sidebar-toggle"
+              type="button"
+              aria-label={sidebarOpen ? copy.closeSidebar : copy.openSidebar}
+              aria-pressed={sidebarOpen}
+              onClick={() => setSidebarOpen((value) => !value)}
+            >
+              ≡
+            </button>
+            <h1>{answerTitle}</h1>
+            <button className="answer-more-button" type="button" aria-label="More">
+              …
+            </button>
+          </header>
         ) : null}
 
         <div className="prompt-area">
