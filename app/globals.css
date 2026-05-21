@@ -350,6 +350,7 @@ button {
 }
 
 .send-button {
+  position: relative;
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -357,6 +358,7 @@ button {
   color: #fff;
   font-size: 25px;
   line-height: 1;
+  overflow: hidden;
 }
 
 .send-button:not(:disabled) {
@@ -366,6 +368,31 @@ button {
 .send-button:disabled {
   cursor: wait;
   opacity: 0.72;
+}
+
+.request-bar.is-demo-locked .send-button:not(:disabled)::before,
+.request-bar.is-demo-locked .send-button:not(:disabled)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.request-bar.is-demo-locked .send-button:not(:disabled)::before {
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.72) 0 11%, rgba(255, 255, 255, 0.28) 12% 24%, transparent 25%);
+  animation: demoSendRipple 1.55s ease-out infinite;
+}
+
+.request-bar.is-demo-locked .send-button:not(:disabled)::after {
+  inset: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(0);
+  animation: demoSendCore 1.55s ease-out infinite;
+}
+
+.request-bar.is-demo-locked .send-button:not(:disabled) {
+  box-shadow: 0 0 0 0 rgba(17, 17, 19, 0.28), 0 8px 22px rgba(17, 17, 19, 0.2);
 }
 
 .duel-grid {
@@ -1706,6 +1733,38 @@ button {
   }
   100% {
     transform: translateX(105%);
+  }
+}
+
+@keyframes demoSendRipple {
+  0% {
+    opacity: 0;
+    transform: scale(0.25);
+  }
+  18% {
+    opacity: 0.9;
+  }
+  72%,
+  100% {
+    opacity: 0;
+    transform: scale(1.85);
+  }
+}
+
+@keyframes demoSendCore {
+  0%,
+  8% {
+    opacity: 0;
+    transform: scale(0.1);
+  }
+  22% {
+    opacity: 0.65;
+    transform: scale(0.78);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.25);
   }
 }
 
