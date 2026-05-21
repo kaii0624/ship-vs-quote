@@ -358,7 +358,7 @@ button {
   color: #fff;
   font-size: 25px;
   line-height: 1;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .send-button:not(:disabled) {
@@ -374,25 +374,28 @@ button {
 .request-bar.is-demo-locked .send-button:not(:disabled)::after {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -9px;
   border-radius: 50%;
   pointer-events: none;
 }
 
 .request-bar.is-demo-locked .send-button:not(:disabled)::before {
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.72) 0 11%, rgba(255, 255, 255, 0.28) 12% 24%, transparent 25%);
+  border: 1px solid rgba(17, 17, 19, 0.3);
+  background: transparent;
   animation: demoSendRipple 1.55s ease-out infinite;
 }
 
 .request-bar.is-demo-locked .send-button:not(:disabled)::after {
-  inset: 6px;
-  background: rgba(255, 255, 255, 0.2);
+  inset: -4px;
+  border: 1px solid rgba(17, 17, 19, 0.22);
+  background: transparent;
   transform: scale(0);
   animation: demoSendCore 1.55s ease-out infinite;
 }
 
 .request-bar.is-demo-locked .send-button:not(:disabled) {
-  box-shadow: 0 0 0 0 rgba(17, 17, 19, 0.28), 0 8px 22px rgba(17, 17, 19, 0.2);
+  animation: demoSendGlow 1.55s ease-out infinite;
+  box-shadow: 0 0 0 0 rgba(17, 17, 19, 0.22), 0 8px 22px rgba(17, 17, 19, 0.2);
 }
 
 .duel-grid {
@@ -1739,10 +1742,10 @@ button {
 @keyframes demoSendRipple {
   0% {
     opacity: 0;
-    transform: scale(0.25);
+    transform: scale(0.62);
   }
   18% {
-    opacity: 0.9;
+    opacity: 1;
   }
   72%,
   100% {
@@ -1755,16 +1758,28 @@ button {
   0%,
   8% {
     opacity: 0;
-    transform: scale(0.1);
+    transform: scale(0.72);
   }
   22% {
-    opacity: 0.65;
-    transform: scale(0.78);
+    opacity: 0.8;
+    transform: scale(0.92);
   }
   70%,
   100% {
     opacity: 0;
-    transform: scale(1.25);
+    transform: scale(1.55);
+  }
+}
+
+@keyframes demoSendGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(17, 17, 19, 0.28), 0 8px 22px rgba(17, 17, 19, 0.2);
+  }
+  55% {
+    box-shadow: 0 0 0 9px rgba(17, 17, 19, 0.12), 0 8px 24px rgba(17, 17, 19, 0.24);
+  }
+  100% {
+    box-shadow: 0 0 0 16px rgba(17, 17, 19, 0), 0 8px 22px rgba(17, 17, 19, 0.2);
   }
 }
 

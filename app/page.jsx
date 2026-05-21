@@ -42,7 +42,7 @@ const COPY = {
     sidebarToggle: "サイドバー",
     newChat: "新規チャット",
     historyAria: "会話履歴",
-    history: ["AI vs JTC 見積もり", "TODOアプリ作成", "社内稟議デモ", "概算見積書レビュー"],
+    history: ["TODOアプリ作成"],
     accountName: "Ship vs. Quote",
     accountDemo: "Demo mode",
     accountApi: "API connected",
@@ -109,7 +109,7 @@ const COPY = {
     sidebarToggle: "Sidebar",
     newChat: "New chat",
     historyAria: "Conversation history",
-    history: ["AI vs Vendor Estimate", "TODO app build", "Approval chain demo", "Estimate review"],
+    history: ["Build TODO App"],
     accountName: "Ship vs. Quote",
     accountDemo: "Demo mode",
     accountApi: "API connected",
@@ -581,12 +581,11 @@ function Sidebar({ copy, apiConfigured }) {
         <input placeholder={copy.search} />
       </label>
       <nav className="sidebar-history" aria-label={copy.historyAria}>
-        <button type="button" className="is-active">
-          {copy.history[0]}
-        </button>
-        <button type="button">{copy.history[1]}</button>
-        <button type="button">{copy.history[2]}</button>
-        <button type="button">{copy.history[3]}</button>
+        {copy.history.map((item, index) => (
+          <button type="button" className={index === 0 ? "is-active" : ""} key={item}>
+            {item}
+          </button>
+        ))}
       </nav>
       <div className="sidebar-account">
         <span>SQ</span>
