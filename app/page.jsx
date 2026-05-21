@@ -744,6 +744,7 @@ export default function Page() {
   const estimate = result?.estimate || fallbackEstimate;
   const selectedModelOption = MODEL_OPTIONS.find((option) => option.value === selectedModel) || MODEL_OPTIONS[0];
   const busy = codexRunning || jtcRunning;
+  const demoPromptLocked = !showKeyGate && !submittedPrompt && !sessionApiKey.trim();
   const currentRingiSteps = language === "en" ? jtcRingiStepsEn : jtcRingiSteps;
   const ringiSteps = useMemo(
     () =>
@@ -989,10 +990,16 @@ export default function Page() {
 
         <div className="prompt-area">
           {!submittedPrompt && !showKeyGate ? <h2 className="prompt-heading">{copy.promptHeading}</h2> : null}
-          <form className="request-bar" onSubmit={runComparison}>
+          <form className={`request-bar ${demoPromptLocked ? "is-demo-locked" : ""}`} onSubmit={runComparison}>
             <textarea
+              aria-readonly={demoPromptLocked}
+              readOnly={demoPromptLocked}
               value={prompt}
-              onChange={(event) => setPrompt(event.target.value)}
+              onChange={(event) => {
+                if (!demoPromptLocked) {
+                  setPrompt(event.target.value);
+                }
+              }}
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
                   event.preventDefault();
@@ -1006,9 +1013,13 @@ export default function Page() {
               <div className="key-model-select composer-model-select">
                 <button
                   aria-expanded={composerModelMenuOpen}
+                  aria-disabled={demoPromptLocked || busy}
                   className="key-model-button composer-model-button"
                   disabled={busy}
                   onClick={() => {
+                    if (demoPromptLocked) {
+                      return;
+                    }
                     setComposerModelMenuOpen((value) => !value);
                   }}
                   type="button"

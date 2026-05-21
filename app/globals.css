@@ -293,6 +293,23 @@ button {
   color: #b6b6bd;
 }
 
+.request-bar.is-demo-locked textarea {
+  cursor: default;
+  user-select: none;
+}
+
+.request-bar.is-demo-locked .composer-model-button {
+  cursor: default;
+}
+
+.request-bar.is-demo-locked .composer-model-button:hover {
+  background: #fff;
+}
+
+.request-bar.is-demo-locked .composer-model-button i {
+  color: #bfc0c6;
+}
+
 .composer-actions {
   position: relative;
   display: flex;
