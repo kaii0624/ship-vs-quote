@@ -742,7 +742,7 @@ export default function Page() {
   const [showKeyGate, setShowKeyGate] = useState(true);
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [sessionApiKey, setSessionApiKey] = useState("");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedModel, setSelectedModel] = useState(MODEL_OPTIONS[0].value);
   const [sessionModel, setSessionModel] = useState(MODEL_OPTIONS[0].value);
   const [composerModelMenuOpen, setComposerModelMenuOpen] = useState(false);
@@ -786,6 +786,15 @@ export default function Page() {
 
   useEffect(() => {
     return () => timersRef.current.forEach((timer) => window.clearTimeout(timer));
+  }, []);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 1120px)");
+    const syncSidebar = () => setSidebarOpen(!mediaQuery.matches);
+
+    syncSidebar();
+    mediaQuery.addEventListener("change", syncSidebar);
+    return () => mediaQuery.removeEventListener("change", syncSidebar);
   }, []);
 
   function addTimer(callback, delay) {
