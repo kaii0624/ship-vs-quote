@@ -386,6 +386,61 @@ function isDefaultTodoPrompt(prompt, language = "ja") {
   return normalizePromptKey(prompt) === normalizePromptKey(DEFAULT_PROMPTS[language] || DEFAULT_PROMPT);
 }
 
+function titleCaseAppName(text) {
+  return text
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => {
+      if (/^[A-Z0-9]{2,}$/.test(word)) {
+        return word;
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(" ");
+}
+
+function truncateTitle(text, maxLength = 42) {
+  return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
+}
+
+function answerTitleFromPrompt(prompt, language, fallbackTitle) {
+  const cleanPrompt = prompt.trim();
+  if (!cleanPrompt) {
+    return fallbackTitle;
+  }
+  if (isDefaultTodoPrompt(cleanPrompt, language)) {
+    return fallbackTitle;
+  }
+
+  if (language === "en") {
+    let title = cleanPrompt
+      .replace(/[.!?]+$/g, "")
+      .replace(/\bplease\b/gi, "")
+      .replace(/\bfor me\b/gi, "")
+      .replace(/^(build|create|make|design|generate)\s+/i, "")
+      .replace(/^(a|an|the)\s+/i, "")
+      .replace(/\bsimple\b/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    title = titleCaseAppName(title || cleanPrompt);
+    return truncateTitle(title.startsWith("Build ") ? title : `Build ${title}`);
+  }
+
+  let title = cleanPrompt
+    .replace(/[。.!?！？]+$/g, "")
+    .replace(/^(簡単な|シンプルな|かんたんな)/, "")
+    .replace(/(を)?(作成|制作|生成|実装|作って|つくって|作る|つくる)(ください|してください|お願いします)?$/g, "")
+    .replace(/(ください|してください|お願いします)$/g, "")
+    .replace(/\s+/g, "")
+    .trim();
+
+  if (!title) {
+    title = cleanPrompt.replace(/[。.!?！？]+$/g, "");
+  }
+  return truncateTitle(title.endsWith("作成") ? title : `${title}作成`, 28);
+}
+
 function tokyoDateParts(now = new Date()) {
   const parts = new Intl.DateTimeFormat("ja-JP", {
     timeZone: TOKYO_TIME_ZONE,
@@ -761,7 +816,7 @@ export default function Page() {
   const selectedModelOption = MODEL_OPTIONS.find((option) => option.value === selectedModel) || MODEL_OPTIONS[0];
   const busy = codexRunning || jtcRunning;
   const demoPromptLocked = !showKeyGate && !submittedPrompt && !sessionApiKey.trim();
-  const answerTitle = copy.history[0];
+  const answerTitle = answerTitleFromPrompt(submittedPrompt, language, copy.history[0]);
   const currentRingiSteps = language === "en" ? jtcRingiStepsEn : jtcRingiSteps;
   const ringiSteps = useMemo(
     () =>
