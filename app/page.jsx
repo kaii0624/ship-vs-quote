@@ -978,7 +978,6 @@ export default function Page() {
                 </div>
                 <h1 className="brand-wordmark">Ship vs. Quote</h1>
               </div>
-              {errorNote ? <p className="key-note">{errorNote}</p> : null}
               <fieldset className="language-picker" aria-label={copy.languageLegend}>
                 <div>
                   <button className={language === "en" ? "is-selected" : ""} type="button" onClick={() => changeLanguage("en")}>
@@ -1001,6 +1000,7 @@ export default function Page() {
                   {copy.skip}
                 </button>
               </div>
+              {errorNote ? <p className="key-note">{errorNote}</p> : null}
               <div className="key-input-shell">
                 <input
                   value={apiKeyInput}

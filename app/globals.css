@@ -666,14 +666,14 @@ button {
 }
 
 .key-note {
-  width: min(100%, 760px);
-  margin: 0;
-  padding: 0 4px;
-  color: #202124;
-  font-size: 14px;
-  font-weight: 650;
+  width: min(100%, 520px);
+  margin: -2px auto 0;
+  padding: 0 10px;
+  color: #b42318;
+  font-size: 13px;
+  font-weight: 620;
   line-height: 1.45;
-  text-align: left;
+  text-align: center;
 }
 
 .language-picker,
