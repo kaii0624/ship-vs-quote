@@ -60,6 +60,7 @@ const COPY = {
     pdfFile: "概算見積書.pdf",
     estimateStatus: "概算見積書.pdf 作成中...",
     keyRequired: "デフォルトのTODOアプリ以外はAPIキーを入力してください。",
+    freePromptKeyRequired: "プロンプトを自由にいれて試すにはAPIキーを入力してください",
     apiFallback: "APIでUIを生成できていません。APIキーまたはモデル設定を確認してください。",
     routeError: "API Routeに接続できなかったため、右側の演出のみ表示中",
     initialAck: "承知しました。社内確認します。",
@@ -129,6 +130,7 @@ const COPY = {
     pdfFile: "Preliminary_Estimate.pdf",
     estimateStatus: "Preliminary_Estimate.pdf generating...",
     keyRequired: "Please enter an API key for anything other than the default TODO demo.",
+    freePromptKeyRequired: "Enter an API key to try your own prompts.",
     apiFallback: "The UI could not be generated with the API. Check the API key or model settings.",
     routeError: "Could not reach the API Route, so only the right-side animation is shown.",
     initialAck: "Understood. We'll review internally.",
@@ -848,21 +850,44 @@ export default function Page() {
     setComposerModelMenuOpen(false);
   }
 
+  function returnToKeyGate(message) {
+    runIdRef.current += 1;
+    timersRef.current.forEach((timer) => window.clearTimeout(timer));
+    timersRef.current = [];
+    setCodexRunning(false);
+    setJtcRunning(false);
+    setSubmittedPrompt("");
+    setShowAnswerColumns(false);
+    setShowCodexPreview(false);
+    setPrompt(DEFAULT_PROMPTS[language]);
+    setRevealed(1);
+    setShowEstimate(false);
+    setShowEstimateDraft(false);
+    setResult(null);
+    setTodoHtml(initialHtml);
+    setCodexStepIndex(0);
+    setJtcRingiIndex(-1);
+    setShowPdfPreview(false);
+    setComposerModelMenuOpen(false);
+    setErrorNote(message);
+    setShowKeyGate(true);
+  }
+
   async function runComparison(event) {
     event.preventDefault();
     const cleanPrompt = prompt.trim();
     if (!cleanPrompt) {
       return;
     }
+    if (busy) {
+      return;
+    }
+    if (!sessionApiKey.trim() && submittedPrompt) {
+      returnToKeyGate(copy.freePromptKeyRequired);
+      return;
+    }
     if (!sessionApiKey.trim() && !isDefaultTodoPrompt(cleanPrompt, language)) {
-      timersRef.current.forEach((timer) => window.clearTimeout(timer));
-      timersRef.current = [];
-      setCodexRunning(false);
-      setJtcRunning(false);
-      setShowAnswerColumns(false);
-      setShowCodexPreview(false);
-      setErrorNote(copy.keyRequired);
-      setShowKeyGate(true);
+      returnToKeyGate(copy.keyRequired);
       return;
     }
     const runId = runIdRef.current + 1;
