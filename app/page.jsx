@@ -49,7 +49,7 @@ const COPY = {
     accountDemo: "Demo mode",
     accountApi: "API connected",
     choiceTitle: "どちらの対応がより好みですか？",
-    choiceBody: "あなたの選択はCodexをより良くします。",
+    choiceBody: "片方は作り、片方は会議を設定します。",
     add: "追加",
     send: "送信",
     codexAria: "AI / Codexくん",
@@ -118,7 +118,7 @@ const COPY = {
     accountDemo: "Demo mode",
     accountApi: "API connected",
     choiceTitle: "Which response do you prefer?",
-    choiceBody: "Your choice helps improve Codex.",
+    choiceBody: "One ships. One schedules a meeting.",
     add: "Add",
     send: "Send",
     codexAria: "AI / Codex",
@@ -569,6 +569,10 @@ function CodexPet({ busy, done, label = "Codexくん" }) {
   );
 }
 
+function SidebarToggleIcon({ sidebarOpen }) {
+  return <span className={`sidebar-toggle-glyph ${sidebarOpen ? "is-open" : "is-closed"}`} aria-hidden="true" />;
+}
+
 function Sidebar({ copy, apiConfigured, onToggle, sidebarOpen }) {
   return (
     <aside className="chat-sidebar" aria-label={copy.sidebarAria}>
@@ -580,7 +584,7 @@ function Sidebar({ copy, apiConfigured, onToggle, sidebarOpen }) {
           aria-pressed={sidebarOpen}
           onClick={onToggle}
         >
-          ≡
+          <SidebarToggleIcon sidebarOpen={sidebarOpen} />
         </button>
         <button className="sidebar-icon-button" type="button" aria-label={copy.newChat}>
           +
@@ -1001,6 +1005,7 @@ export default function Page() {
 
         {submittedPrompt ? (
           <header className="answer-topbar">
+            <h1>{answerTitle}</h1>
             <button
               className="answer-sidebar-toggle"
               type="button"
@@ -1008,11 +1013,7 @@ export default function Page() {
               aria-pressed={sidebarOpen}
               onClick={() => setSidebarOpen((value) => !value)}
             >
-              ≡
-            </button>
-            <h1>{answerTitle}</h1>
-            <button className="answer-more-button" type="button" aria-label="More">
-              …
+              <SidebarToggleIcon sidebarOpen={sidebarOpen} />
             </button>
           </header>
         ) : null}
