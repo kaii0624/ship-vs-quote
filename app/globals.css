@@ -323,6 +323,37 @@ button {
   gap: 18px;
 }
 
+.prompt-examples {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: -4px;
+  color: #8a8a91;
+  font-size: 13px;
+}
+
+.prompt-examples span {
+  font-weight: 560;
+}
+
+.prompt-examples button {
+  min-height: 30px;
+  padding: 0 11px;
+  border: 1px solid #e2e2e6;
+  border-radius: 999px;
+  background: #fff;
+  color: #4f5057;
+  font-size: 13px;
+  font-weight: 560;
+}
+
+.prompt-examples button:hover {
+  border-color: #cfcfd5;
+  background: #f7f7f8;
+}
+
 .prompt-heading {
   margin: 0;
   color: #202124;
@@ -1106,8 +1137,9 @@ button {
 .preview-frame {
   --preview-toolbar-height: 32px;
   position: relative;
-  flex: 1;
-  min-height: 0;
+  flex: 0 0 auto;
+  height: min(540px, 58dvh);
+  min-height: 380px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1142,12 +1174,13 @@ button {
 .preview-frame iframe {
   display: block;
   width: 100%;
-  height: auto;
-  flex: 1;
+  height: 100%;
+  flex: 1 1 auto;
   min-height: 0;
   border: 0;
   background: #fff;
   overflow: auto;
+  overscroll-behavior: contain;
   transition: opacity 180ms ease;
 }
 

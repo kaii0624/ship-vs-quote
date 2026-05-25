@@ -37,6 +37,8 @@ const COPY = {
     skip: "スキップして初期デモを見る",
     promptHeading: "何に取り組みますか？",
     promptPlaceholder: "Codex に何でも聞いてください。",
+    promptExamplesLabel: "例",
+    promptExamples: ["シンプルなタイマーアプリ", "シンプルな電卓アプリ"],
     search: "検索",
     sidebarAria: "会話サイドバー",
     sidebarToggle: "サイドバー",
@@ -107,6 +109,8 @@ const COPY = {
     skip: "Skip and view demo",
     promptHeading: "What should we work\u00a0on?",
     promptPlaceholder: "Ask Codex anything.",
+    promptExamplesLabel: "Examples",
+    promptExamples: ["simple timer app", "simple calculator app"],
     search: "Search",
     sidebarAria: "Conversation sidebar",
     sidebarToggle: "Sidebar",
@@ -1184,6 +1188,16 @@ export default function Page() {
               </button>
             </div>
           </form>
+          {!submittedPrompt && !showKeyGate && sessionApiKey.trim() ? (
+            <div className="prompt-examples" aria-label={copy.promptExamplesLabel}>
+              <span>{copy.promptExamplesLabel}</span>
+              {copy.promptExamples.map((example) => (
+                <button key={example} type="button" onClick={() => setPrompt(example)}>
+                  {example}
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         {!submittedPrompt ? (
