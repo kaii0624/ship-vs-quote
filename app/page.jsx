@@ -1014,17 +1014,31 @@ export default function Page() {
 
         {submittedPrompt ? (
           <header className="answer-topbar">
-            <button
-              className="answer-sidebar-toggle"
-              type="button"
-              aria-label={sidebarOpen ? copy.closeSidebar : copy.openSidebar}
-              aria-pressed={sidebarOpen}
-              onClick={() => setSidebarOpen((value) => !value)}
-            >
-              <SidebarToggleIcon sidebarOpen={sidebarOpen} />
-            </button>
+            {!sidebarOpen ? (
+              <button
+                className="answer-sidebar-toggle"
+                type="button"
+                aria-label={copy.openSidebar}
+                aria-pressed={sidebarOpen}
+                onClick={() => setSidebarOpen(true)}
+              >
+                <SidebarToggleIcon sidebarOpen={sidebarOpen} />
+              </button>
+            ) : null}
             <h1>{answerTitle}</h1>
           </header>
+        ) : null}
+
+        {!submittedPrompt && !showKeyGate && !sidebarOpen ? (
+          <button
+            className="start-sidebar-toggle"
+            type="button"
+            aria-label={copy.openSidebar}
+            aria-pressed={sidebarOpen}
+            onClick={() => setSidebarOpen(true)}
+          >
+            <SidebarToggleIcon sidebarOpen={sidebarOpen} />
+          </button>
         ) : null}
 
         <div className="prompt-area">

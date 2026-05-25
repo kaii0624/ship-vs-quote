@@ -262,7 +262,8 @@ button {
   white-space: nowrap;
 }
 
-.answer-sidebar-toggle {
+.answer-sidebar-toggle,
+.start-sidebar-toggle {
   flex: 0 0 auto;
   width: 34px;
   height: 34px;
@@ -275,7 +276,15 @@ button {
   line-height: 1;
 }
 
-.answer-sidebar-toggle:hover {
+.start-sidebar-toggle {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 14;
+}
+
+.answer-sidebar-toggle:hover,
+.start-sidebar-toggle:hover {
   background: #f0f0f2;
 }
 
@@ -2403,9 +2412,15 @@ button {
     padding: 0 10px;
   }
 
-  .answer-sidebar-toggle {
+  .answer-sidebar-toggle,
+  .start-sidebar-toggle {
     width: 32px;
     height: 32px;
+  }
+
+  .start-sidebar-toggle {
+    top: max(12px, env(safe-area-inset-top));
+    left: 12px;
   }
 
   .answer-topbar h1 {
