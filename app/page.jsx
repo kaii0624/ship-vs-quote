@@ -1014,7 +1014,6 @@ export default function Page() {
 
         {submittedPrompt ? (
           <header className="answer-topbar">
-            <h1>{answerTitle}</h1>
             <button
               className="answer-sidebar-toggle"
               type="button"
@@ -1024,6 +1023,7 @@ export default function Page() {
             >
               <SidebarToggleIcon sidebarOpen={sidebarOpen} />
             </button>
+            <h1>{answerTitle}</h1>
           </header>
         ) : null}
 
