@@ -634,7 +634,7 @@ function SidebarToggleIcon({ sidebarOpen }) {
   return <span className={`sidebar-toggle-glyph ${sidebarOpen ? "is-open" : "is-closed"}`} aria-hidden="true" />;
 }
 
-function Sidebar({ copy, apiConfigured, onToggle, sidebarOpen }) {
+function Sidebar({ copy, apiConfigured, onToggle, sidebarOpen, historyItems }) {
   return (
     <aside className="chat-sidebar" aria-label={copy.sidebarAria}>
       <div className="sidebar-top">
@@ -656,7 +656,7 @@ function Sidebar({ copy, apiConfigured, onToggle, sidebarOpen }) {
         <input placeholder={copy.search} />
       </label>
       <nav className="sidebar-history" aria-label={copy.historyAria}>
-        {copy.history.map((item, index) => (
+        {historyItems.map((item, index) => (
           <button type="button" className={index === 0 ? "is-active" : ""} key={item}>
             {item}
           </button>
@@ -821,6 +821,7 @@ export default function Page() {
   const busy = codexRunning || jtcRunning;
   const demoPromptLocked = !showKeyGate && !submittedPrompt && !sessionApiKey.trim();
   const answerTitle = answerTitleFromPrompt(submittedPrompt, language, copy.history[0]);
+  const sidebarHistoryItems = submittedPrompt ? [answerTitle] : copy.history;
   const currentRingiSteps = language === "en" ? jtcRingiStepsEn : jtcRingiSteps;
   const ringiSteps = useMemo(
     () =>
@@ -1024,7 +1025,13 @@ export default function Page() {
 
   return (
     <div className={`app-frame ${sidebarOpen ? "" : "is-sidebar-closed"}`}>
-      <Sidebar copy={copy} apiConfigured={Boolean(sessionApiKey.trim())} onToggle={() => setSidebarOpen((value) => !value)} sidebarOpen={sidebarOpen} />
+      <Sidebar
+        apiConfigured={Boolean(sessionApiKey.trim())}
+        copy={copy}
+        historyItems={sidebarHistoryItems}
+        onToggle={() => setSidebarOpen((value) => !value)}
+        sidebarOpen={sidebarOpen}
+      />
       <main className={`app-shell ${submittedPrompt ? "has-answers" : "is-start"}`}>
         {showKeyGate ? (
           <div className="key-gate" role="dialog" aria-modal="true" aria-label={copy.apiTitle}>
