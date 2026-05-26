@@ -11,6 +11,25 @@ const DEFAULT_PROMPT = DEFAULT_PROMPTS.ja;
 const GENERIC_NAV_LABELS = new Set(["概要", "一覧", "作成", "設定"]);
 const DEFAULT_MODEL = "gpt-5.4-mini";
 const ALLOWED_MODELS = new Set(["gpt-5.4-mini", "gpt-5.5"]);
+const OUTPUT_TOKEN_BUDGETS = {
+  "gpt-5.5": 32000,
+  "gpt-5.4-mini": 8000,
+};
+const SPLIT_OUTPUT_TOKEN_BUDGETS = {
+  codex: {
+    "gpt-5.5": 22000,
+    "gpt-5.4-mini": 12000,
+  },
+  jtc: {
+    "gpt-5.5": 5000,
+    "gpt-5.4-mini": 4000,
+  },
+};
+const JTC_TIMEOUT_MS = 45000;
+const REASONING_EFFORTS = {
+  "gpt-5.5": "none",
+  "gpt-5.4-mini": "low",
+};
 const LANGUAGES = new Set(["ja", "en"]);
 const TOKYO_TIME_ZONE = "Asia/Tokyo";
 const WEEKDAYS = {
@@ -869,6 +888,99 @@ function schema() {
   };
 }
 
+function codexSchema() {
+  return {
+    type: "object",
+    additionalProperties: false,
+    required: ["codexLine", "appHtml", "codexSteps"],
+    properties: {
+      codexLine: { type: "string" },
+      appHtml: { type: "string" },
+      codexSteps: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 6 },
+    },
+  };
+}
+
+function jtcSchema() {
+  return {
+    type: "object",
+    additionalProperties: false,
+    required: ["jtcFinalLine", "jtcLines", "meetingLog", "estimate"],
+    properties: {
+      jtcFinalLine: { type: "string" },
+      jtcLines: { type: "array", items: { type: "string" }, minItems: 6, maxItems: 8 },
+      meetingLog: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 4 },
+      estimate: {
+        type: "object",
+        additionalProperties: false,
+        required: ["title", "period", "cost", "total", "lineItems", "assumptions"],
+        properties: {
+          title: { type: "string" },
+          period: { type: "string" },
+          cost: { type: "string" },
+          total: { type: "string" },
+          lineItems: {
+            type: "array",
+            minItems: 3,
+            maxItems: 4,
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["name", "quantity", "amount"],
+              properties: {
+                name: { type: "string" },
+                quantity: { type: "string" },
+                amount: { type: "string" },
+              },
+            },
+          },
+          assumptions: { type: "array", items: { type: "string" }, minItems: 4, maxItems: 6 },
+        },
+      },
+    },
+  };
+}
+
+async function requestStructuredJson({ client, model, input, schemaName, responseSchema, maxOutputTokens, reasoningEffort, timeoutMs = 0 }) {
+  const controller = timeoutMs ? new AbortController() : null;
+  const timeout = controller
+    ? setTimeout(() => {
+        controller.abort();
+      }, timeoutMs)
+    : null;
+  try {
+    const response = await client.responses.create(
+      {
+        model,
+        input,
+        reasoning: { effort: reasoningEffort },
+        max_output_tokens: maxOutputTokens,
+        text: {
+          verbosity: "low",
+          format: {
+            type: "json_schema",
+            name: schemaName,
+            strict: true,
+            schema: responseSchema,
+          },
+        },
+      },
+      controller ? { signal: controller.signal } : undefined
+    );
+
+    if (response.status === "incomplete") {
+      const reason = response.incomplete_details?.reason || "unknown";
+      throw new Error(`OpenAI response incomplete: ${schemaName}: ${reason}`);
+    }
+
+    return JSON.parse(response.output_text || "{}");
+  } finally {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+  }
+}
+
 export async function POST(request) {
   const body = await request.json().catch(() => ({}));
   const language = LANGUAGES.has(body.language) ? body.language : "ja";
@@ -878,6 +990,9 @@ export async function POST(request) {
   const requestedModel = typeof body.model === "string" ? body.model.trim() : "";
   const envModel = process.env.OPENAI_MODEL || "";
   const model = ALLOWED_MODELS.has(requestedModel) ? requestedModel : ALLOWED_MODELS.has(envModel) ? envModel : DEFAULT_MODEL;
+  const strategy = body.strategy === "combined" ? "combined" : "split";
+  const maxOutputTokens = OUTPUT_TOKEN_BUDGETS[model] || OUTPUT_TOKEN_BUDGETS[DEFAULT_MODEL];
+  const reasoningEffort = REASONING_EFFORTS[model] || REASONING_EFFORTS[DEFAULT_MODEL];
   const todayLabel = todayTokyoLabel(language);
   const candidates = meetingCandidateDates(language);
 
@@ -887,11 +1002,11 @@ export async function POST(request) {
 
   try {
     const client = new OpenAI({ apiKey });
-    const systemPrompt =
+    const combinedSystemPrompt =
       language === "en"
         ? "You are an engine that creates the actual application screen as fresh HTML/CSS for the user's request. The Codex side returns a short natural reply and a single-file HTML string in appHtml that can be rendered directly in an iframe. appHtml must be the requested app's UI itself, not a project-status screen, task tracker, owner list, recent activity feed, generic dashboard, default tabs, or boilerplate frame. The JTC side should parody English-speaking enterprise procurement/vendor-estimate culture: alignment calls, discovery, scope boundaries, exclusions, assumptions, SOW language, and slow approval chains. Keep it witty rather than hostile. Return JSON only."
         : "あなたはユーザーの依頼内容に合わせて、アプリの画面そのものをHTML/CSSとして一から作成するエンジンです。Codex側は短い回答と、iframeにそのまま表示する1ファイルHTMLをappHtmlとして返します。appHtmlは依頼されたアプリそのもののUIであり、進捗管理、作業状況、担当者一覧、直近の動き、確認中タスク、汎用ダッシュボード、既定タブ、既定文言を混ぜないでください。JTC側は日本企業/SIer風の認識合わせ、社内稟議、責任分界点、別途協議、概算見積もり文化を皮肉っぽく、ただし悪意よりユーモア優先で生成します。返答は必ずJSONだけにしてください。";
-    const userPrompt =
+    const combinedUserPrompt =
       language === "en"
         ? `User request: ${prompt}\n\n` +
           `Today's date in Asia/Tokyo is ${todayLabel}. For jtcFinalLine, use these three estimate-review meeting options, all after today, in this exact order: "${candidates.join(", ")}". Do not include a year in the visible meeting options.\n` +
@@ -905,31 +1020,98 @@ export async function POST(request) {
           "appHtmlには、依頼されたアプリの画面そのものを一から作る完全なHTML文字列を返してください。CSSは<style>内にすべて書き、JavaScript、外部CSS、外部フォント、外部画像、iframe、object、embed、linkタグは使わないでください。Markdownの```や説明文は入れず、<!doctype html>から始まるHTMLだけにしてください。表示先はチャット欄内のiframeです。html/bodyは margin:0; width:100%; min-height:100%; overflow:auto; にし、主要コンテナは width:100%; min-height:100vh; box-sizing:border-box; overflow:visible; にしてください。外側のアプリコンテナにoverflow:hiddenや固定max-heightを入れず、縦に長い場合はiframe内でスクロールできる状態にしてください。文字は短く、ボタンやカードや入力欄が重ならないようにしてください。依頼内容に自然なUIだけを作り、管理用のメタ画面、概要/一覧/作成/設定のような汎用タブ、進行中/直近の動き/内容を確認中/佐藤/鈴木/田中のような作業管理サンプル文言や人名を入れないでください。\n" +
           "jtcFinalLineは日本企業/SIer風の伝統的で少し遅い回答にしてください。社内検討の結果、概算金額、構築期間、お見積り説明の打ち合わせ候補日3つ、要件定義・デザイン・連携・運用などは別途協議、全て対応可能かは次回打ち合わせ次第、というエクスキューズを含めてください。「Thinkingの結果」は絶対に使わないでください。220字以内。\n" +
           "jtcLinesは上から下へ指示し、最後は下から上へ承認が戻る稟議吹き出しとして使える短文を14個程度ください。estimateは日本企業っぽい御見積書として、件名・概算期間・概算費用・税込合計・明細・前提条件を依頼内容に合わせてください。実装そのものではなく、影響調査および実装支援の見積もりにしてください。";
-    const response = await client.responses.create({
+
+    if (strategy === "combined") {
+      const parsed = await requestStructuredJson({
+        client,
+        model,
+        input: [
+          { role: "system", content: combinedSystemPrompt },
+          { role: "user", content: combinedUserPrompt },
+        ],
+        schemaName: "ai_vs_jtc_duel",
+        responseSchema: schema(),
+        maxOutputTokens,
+        reasoningEffort,
+      });
+      parsed.generationStrategy = "combined";
+      return NextResponse.json(normalizePayload(parsed, prompt, "openai", language));
+    }
+
+    const codexSystemPrompt =
+      language === "en"
+        ? "You create only the Codex side of this demo. Build the requested app screen itself as fresh, single-file HTML/CSS. Return JSON only. Do not create a project-status screen, task tracker, owner list, recent activity feed, generic dashboard, default tabs, or boilerplate frame."
+        : "あなたはこのデモのCodex側だけを生成します。ユーザーの依頼内容に合わせて、アプリの画面そのものを1ファイルHTML/CSSとして一から作成してください。返答は必ずJSONだけです。進捗管理、作業状況、担当者一覧、直近の動き、確認中タスク、汎用ダッシュボード、既定タブ、既定文言は作らないでください。";
+    const codexUserPrompt =
+      language === "en"
+        ? `User request: ${prompt}\n\n` +
+          "Return codexLine, codexSteps, and appHtml only. codexLine must be a natural Codex-style response in English, never using the phrase \"Thinking result\". Keep it under 140 characters when possible.\n" +
+          "appHtml must be a complete HTML string for the requested app UI itself. Put all CSS inside <style>. Do not use JavaScript, external CSS, external fonts, external images, iframe, object, embed, or link tags. Do not include Markdown fences or explanations; return HTML starting with <!doctype html>. It will be rendered inside a chat iframe, so html/body must use margin:0; width:100%; min-height:100%; overflow:auto; and the main container must use width:100%; min-height:100vh; box-sizing:border-box; overflow:visible;. Do not put overflow:hidden or fixed max-height on the outer app container. Keep copy concise. Build only the natural UI for the requested app. Avoid generic admin tabs such as Overview/List/Create/Settings, project-status screens, recent activity, task owners, or placeholder people names."
+        : `依頼プロンプト: ${prompt}\n\n` +
+          "codexLine、codexSteps、appHtmlだけを返してください。codexLineは「Thinkingの結果」を絶対に使わず、Codexが即対応したような自然な日本語回答にしてください。120字以内。\n" +
+          "appHtmlには、依頼されたアプリの画面そのものを一から作る完全なHTML文字列を返してください。CSSは<style>内にすべて書き、JavaScript、外部CSS、外部フォント、外部画像、iframe、object、embed、linkタグは使わないでください。Markdownの```や説明文は入れず、<!doctype html>から始まるHTMLだけにしてください。表示先はチャット欄内のiframeです。html/bodyは margin:0; width:100%; min-height:100%; overflow:auto; にし、主要コンテナは width:100%; min-height:100vh; box-sizing:border-box; overflow:visible; にしてください。外側のアプリコンテナにoverflow:hiddenや固定max-heightを入れないでください。依頼内容に自然なUIだけを作り、管理用のメタ画面、概要/一覧/作成/設定のような汎用タブ、進行中/直近の動き/内容を確認中/佐藤/鈴木/田中のような作業管理サンプル文言や人名を入れないでください。";
+    const jtcSystemPrompt =
+      language === "en"
+        ? "You create only the JTC/vendor-estimate side of this demo. Parody English-speaking enterprise procurement/vendor-estimate culture with concise copy: alignment, scope boundaries, exclusions, slow approval, and an estimate. Return compact JSON only."
+        : "あなたはこのデモのJTC見積もり側だけを生成します。日本企業/SIer風の認識合わせ、責任分界点、別途協議、概算見積もり文化を、短く皮肉っぽく生成してください。返答は必ずコンパクトなJSONだけです。";
+    const jtcUserPrompt =
+      language === "en"
+        ? `User request: ${prompt}\n\n` +
+          `Today's date in Asia/Tokyo is ${todayLabel}. For jtcFinalLine, use these three estimate-review meeting options, all after today, in this exact order: "${candidates.join(", ")}". Do not include a year in the visible meeting options.\n` +
+          "Return jtcFinalLine, jtcLines, meetingLog, and estimate only. Keep every string short. jtcFinalLine must be a slow enterprise/vendor response with internal review, preliminary cost, timeline, the provided meeting options, and caveats that feasibility depends on the next meeting. Never use \"Thinking result\". Keep it under 260 characters.\n" +
+          "Use 6-8 short jtcLines, 2-4 short meetingLog entries, 3-4 estimate lineItems, and 4-6 assumptions. The estimate should cover discovery and implementation support, not actual production delivery."
+        : `依頼プロンプト: ${prompt}\n\n` +
+          `今日の日付（Asia/Tokyo）は${todayLabel}です。jtcFinalLineのお見積り説明候補日は、今日の翌日以降として、必ず「${candidates.join("、")}」の3候補をこの順番で使ってください。年は書かず、月日・曜日・時刻だけを書いてください。\n` +
+          "jtcFinalLine、jtcLines、meetingLog、estimateだけを返してください。すべて短文にしてください。jtcFinalLineは日本企業/SIer風の遅い回答として、社内検討、概算金額、構築期間、指定の候補日、次回打ち合わせ次第というエクスキューズを含めてください。「Thinkingの結果」は絶対に使わないでください。180字以内。\n" +
+          "jtcLinesは6〜8個、meetingLogは2〜4個、estimate.lineItemsは3〜4個、assumptionsは4〜6個にしてください。estimateは実装そのものではなく、影響調査および実装支援の見積もりにしてください。";
+    const codexPromise = requestStructuredJson({
+      client,
       model,
       input: [
-        {
-          role: "system",
-          content: systemPrompt,
-        },
-        {
-          role: "user",
-          content: userPrompt,
-        },
+        { role: "system", content: codexSystemPrompt },
+        { role: "user", content: codexUserPrompt },
       ],
-      max_output_tokens: 5200,
-      text: {
-        format: {
-          type: "json_schema",
-          name: "ai_vs_jtc_duel",
-          strict: true,
-          schema: schema(),
-        },
-      },
+      schemaName: "ai_vs_jtc_codex",
+      responseSchema: codexSchema(),
+      maxOutputTokens: SPLIT_OUTPUT_TOKEN_BUDGETS.codex[model] || SPLIT_OUTPUT_TOKEN_BUDGETS.codex[DEFAULT_MODEL],
+      reasoningEffort,
     });
+    const jtcPromise = requestStructuredJson({
+      client,
+      model,
+      input: [
+        { role: "system", content: jtcSystemPrompt },
+        { role: "user", content: jtcUserPrompt },
+      ],
+      schemaName: "ai_vs_jtc_estimate",
+      responseSchema: jtcSchema(),
+      maxOutputTokens: SPLIT_OUTPUT_TOKEN_BUDGETS.jtc[model] || SPLIT_OUTPUT_TOKEN_BUDGETS.jtc[DEFAULT_MODEL],
+      reasoningEffort,
+      timeoutMs: JTC_TIMEOUT_MS,
+    });
+    const [codexPayload, jtcResult] = await Promise.all([
+      codexPromise,
+      jtcPromise.then(
+        (payload) => ({ ok: true, payload }),
+        (error) => ({ ok: false, error })
+      ),
+    ]);
 
-    const raw = response.output_text || "{}";
-    const parsed = JSON.parse(raw);
+    let jtcPayload = jtcResult.payload;
+    const metadata = { generationStrategy: "split", jtcSource: "openai" };
+    if (!jtcResult.ok) {
+      const fallback = fallbackPayload(prompt, "jtc-partial-fallback", language);
+      jtcPayload = {
+        jtcFinalLine: fallback.jtcFinalLine,
+        jtcLines: fallback.jtcLines,
+        meetingLog: fallback.meetingLog,
+        estimate: fallback.estimate,
+      };
+      metadata.jtcSource = "fallback";
+      metadata.jtcError = jtcResult.error instanceof Error ? jtcResult.error.message : String(jtcResult.error || "Unknown JTC error");
+    }
+
+    const parsed = { ...codexPayload, ...jtcPayload, ...metadata };
     return NextResponse.json(normalizePayload(parsed, prompt, "openai", language));
   } catch (error) {
     const payload = normalizePayload(fallbackPayload(prompt, "api-error", language), prompt, "api-error", language);
